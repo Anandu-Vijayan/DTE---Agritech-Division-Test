@@ -14,13 +14,13 @@ import { useQuestions } from "@/hooks/use-questions";
 import { QuestionEditor } from "./question-editor";
 import { QuestionAnswering } from "./question-answering";
 
-interface Question {
-  id: string;
-  order: number;
-  text: string;
-  isLinked?: boolean;
-  answered?: boolean;
-}
+// interface Question {
+//   id: string;
+//   order: number;
+//   text: string;
+//   isLinked?: boolean;
+//   answered?: boolean;
+// }
 
 export function QuestionList() {
   const { questions, deleteQuestion, reorderQuestions } = useQuestions((state) => ({
