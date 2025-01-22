@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,19 +16,39 @@ interface QuestionAnsweringProps {
 export function QuestionAnswering({ question }: QuestionAnsweringProps) {
   const { markQuestionAnswered } = useQuestions()
   const [answer, setAnswer] = useState<string | string[]>("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState("")
 
-  const handleSubmit = () => {
-    if (answer) {
-      markQuestionAnswered(question.id)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    
+    if (!answer || (Array.isArray(answer) && answer.length === 0)) {
+      setError("Please provide an answer")
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      await markQuestionAnswered(question.id)
+    } catch (err) {
+      setError("Failed to submit answer")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <h2 className="text-xl font-semibold">{question.text}</h2>
+      
       {question.type === "radio" && (
-        <RadioGroup onValueChange={(value) => setAnswer(value)}>
-          {question.options.map((option) => (
+        <RadioGroup 
+          onValueChange={(value) => setAnswer(value)}
+          name="radio-answer"
+          aria-label={question.text}
+        >
+          {question.options?.map((option) => (
             <div key={option.id} className="flex items-center space-x-2">
               <RadioGroupItem value={option.id} id={option.id} />
               <Label htmlFor={option.id}>{option.text}</Label>
@@ -34,20 +56,21 @@ export function QuestionAnswering({ question }: QuestionAnsweringProps) {
           ))}
         </RadioGroup>
       )}
+
       {question.type === "checkbox" && (
-        <div className="space-y-2">
-          {question.options.map((option) => (
+        <div className="space-y-2" role="group" aria-label={question.text}>
+          {question.options?.map((option) => (
             <div key={option.id} className="flex items-center space-x-2">
               <Checkbox
                 id={option.id}
+                name="checkbox-answer"
                 onCheckedChange={(checked) => {
                   setAnswer((prev) => {
                     const prevArray = Array.isArray(prev) ? prev : []
                     if (checked) {
                       return [...prevArray, option.id]
-                    } else {
-                      return prevArray.filter((id) => id !== option.id)
                     }
+                    return prevArray.filter((id) => id !== option.id)
                   })
                 }}
               />
@@ -56,16 +79,32 @@ export function QuestionAnswering({ question }: QuestionAnsweringProps) {
           ))}
         </div>
       )}
+
       {question.type === "text" && (
         <div className="space-y-2">
-          <Label htmlFor="answer">Your answer</Label>
-          <Input id="answer" placeholder="Type your answer here" onChange={(e) => setAnswer(e.target.value)} />
+          <Label htmlFor="text-answer">Your answer</Label>
+          <Input 
+            id="text-answer"
+            name="text-answer"
+            placeholder="Type your answer here"
+            onChange={(e) => setAnswer(e.target.value)}
+            value={typeof answer === 'string' ? answer : ''}
+            aria-invalid={!!error}
+          />
         </div>
       )}
-      <Button className="mt-4" onClick={handleSubmit}>
-        Submit Answer
+
+      {error && (
+        <p className="text-sm text-red-500" role="alert">{error}</p>
+      )}
+
+      <Button 
+        type="submit" 
+        className="mt-4"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "Submitting..." : "Submit Answer"}
       </Button>
-    </div>
+    </form>
   )
 }
-
