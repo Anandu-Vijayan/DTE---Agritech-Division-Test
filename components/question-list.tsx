@@ -1,42 +1,60 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
-import { Pencil, Trash2, Plus, Grid, CheckCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { useQuestions } from "@/hooks/use-questions"
-import { QuestionEditor } from "./question-editor"
-import { QuestionAnswering } from "./question-answering"
+import { useState } from "react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
+import { Pencil, Trash2, Plus, Grid, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useQuestions } from "@/hooks/use-questions";
+import { QuestionEditor } from "./question-editor";
+import { QuestionAnswering } from "./question-answering";
+
+interface Question {
+  id: string;
+  order: number;
+  text: string;
+  isLinked?: boolean;
+  answered?: boolean;
+}
 
 export function QuestionList() {
-  const { questions, deleteQuestion, reorderQuestions } = useQuestions()
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [isAdding, setIsAdding] = useState(false)
-  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null)
+  const { questions, deleteQuestion, reorderQuestions } = useQuestions((state) => ({
+    questions: state.questions,
+    deleteQuestion: state.deleteQuestion,
+    reorderQuestions: state.reorderQuestions,
+  }));
+  
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
 
-  const handleDragEnd = (result: any) => {
-    if (!result.destination) return
-    reorderQuestions(result.source.index, result.destination.index)
-  }
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    reorderQuestions(result.source.index, result.destination.index);
+  };
 
   if (editingId || isAdding) {
     return (
       <QuestionEditor
         questionId={editingId ?? undefined}
         onSave={() => {
-          setEditingId(null)
-          setIsAdding(false)
+          setEditingId(null);
+          setIsAdding(false);
         }}
         onCancel={() => {
-          setEditingId(null)
-          setIsAdding(false)
+          setEditingId(null);
+          setIsAdding(false);
         }}
       />
-    )
+    );
   }
 
-  const selectedQuestion = questions.find((q) => q.id === selectedQuestionId)
+  const selectedQuestion = questions.find((q) => q.id === selectedQuestionId);
 
   return (
     <div className="max-w-5xl mx-auto p-6">
@@ -90,8 +108,8 @@ export function QuestionList() {
                             size="icon"
                             className="h-8 w-8 text-blue-500"
                             onClick={(e) => {
-                              e.stopPropagation()
-                              setEditingId(question.id)
+                              e.stopPropagation();
+                              setEditingId(question.id);
                             }}
                           >
                             <Pencil className="h-4 w-4" />
@@ -101,8 +119,8 @@ export function QuestionList() {
                             size="icon"
                             className="h-8 w-8 text-gray-500"
                             onClick={(e) => {
-                              e.stopPropagation()
-                              deleteQuestion(question.id)
+                              e.stopPropagation();
+                              deleteQuestion(question.id);
                             }}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -134,6 +152,5 @@ export function QuestionList() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-
